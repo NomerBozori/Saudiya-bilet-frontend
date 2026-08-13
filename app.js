@@ -1,7 +1,7 @@
 // ==================== SOZLAMALAR ====================
 // Backend (Render.com) manzilini shu yerga qo'ying, masalan:
 // "https://umra-chipta-backend.onrender.com"
-const API_BASE_URL = "https://SIZNING-BACKEND.onrender.com";
+const API_BASE_URL = "https://saudiya-bilet-backend.onrender.com";
 
 // ==================== TELEGRAM WEBAPP INIT ====================
 const tg = window.Telegram.WebApp;
