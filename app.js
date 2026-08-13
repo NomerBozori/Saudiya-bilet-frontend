@@ -148,7 +148,7 @@ function renderResults(flights) {
   flights.forEach((f, idx) => {
     const card = document.createElement("div");
     card.className = "tg-flight-card";
-    const badge = f.source === "manual" ? `<span class="tg-badge">Bizning agentlik</span>` : "";
+    const badge = f.source === "manual" ? `<span class="tg-badge-label">Bizning agentlik</span>` : "";
     card.innerHTML = `
       <div class="tg-flight-row">
         <div>
