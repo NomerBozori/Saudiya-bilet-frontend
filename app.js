@@ -149,6 +149,9 @@ function renderResults(flights) {
     const card = document.createElement("div");
     card.className = "tg-flight-card";
     const badge = f.source === "manual" ? `<span class="tg-badge-label">Bizning agentlik</span>` : "";
+    const externalLink = (f.source === "api" && f.link)
+      ? `<a href="${f.link}" target="_blank" class="tg-btn-outline-link">🔗 Boshqa saytda ko'rish</a>`
+      : "";
     card.innerHTML = `
       <div class="tg-flight-row">
         <div>
@@ -160,6 +163,7 @@ function renderResults(flights) {
         <div class="tg-flight-price">$${f.price}</div>
       </div>
       <button class="tg-flight-select" data-idx="${idx}">Tanlash</button>
+      ${externalLink}
     `;
     list.appendChild(card);
     card.querySelector(".tg-flight-select").addEventListener("click", () => selectFlight(f));
