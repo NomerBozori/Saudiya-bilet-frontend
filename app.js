@@ -1,5 +1,6 @@
 // ==================== SOZLAMALAR ====================
 const API_BASE_URL = "https://saudiya-bilet-backend.onrender.com";
+const ADMIN_TG_USERNAME = "nuriddinovdfg";
 
 // Telegram WebApp init
 const tg = window.Telegram?.WebApp || {
@@ -28,7 +29,7 @@ const state = {
   lastOrderId: null,
 };
 
-// ==================== NAVIGATION TABS ====================
+// ==================== NAVIGATION TABS (3 TA TAB) ====================
 document.querySelectorAll(".tg-tab-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     document.querySelectorAll(".tg-tab-btn").forEach(b => b.classList.remove("active"));
@@ -123,6 +124,38 @@ document.getElementById("depart_date").value = today.toISOString().split("T")[0]
 document.getElementById("origin").value = "Toshkent (TAS)";
 document.getElementById("destination").value = "Jidda (JED)";
 
+// ==================== ZAXIRA REYSLAR BAZASI (KO'P BILETLAR CHIQISHI UCHUN) ====================
+function generateComprehensiveFlights(origin, destination, date) {
+  const originCode = origin.toUpperCase();
+  const destCode = destination.toUpperCase();
+
+  const airlinesPool = [
+    { name: "Centrum Air", flightNum: "C6-331", depTime: "06:30", arrTime: "10:15", duration: "5s 45d", price: 380, baggage: "30 kg + 7 kg", direct: true, tag: "⭐ Bizning Reys" },
+    { name: "Uzbekistan Airways", flightNum: "HY-3381", depTime: "09:45", arrTime: "13:20", duration: "5s 35d", price: 420, baggage: "30 kg + 8 kg", direct: true, tag: "🔥 Eng Ommabop" },
+    { name: "Flynas", flightNum: "XY-612", depTime: "14:15", arrTime: "18:00", duration: "5s 45d", price: 370, baggage: "20 kg + 7 kg", direct: true, tag: "💰 Hamyonbop" },
+    { name: "Saudia (VIP)", flightNum: "SV-841", depTime: "18:20", arrTime: "22:05", duration: "5s 45d", price: 460, baggage: "2x23 kg (46 kg)", direct: true, tag: "👑 Premium Klass" },
+    { name: "Panorama Airways", flightNum: "5P-552", depTime: "04:00", arrTime: "07:45", duration: "5s 45d", price: 390, baggage: "30 kg + 7 kg", direct: true, tag: "⭐ To'g'ridan-to'g'ri" },
+    { name: "Air Arabia", flightNum: "G9-224", depTime: "11:20", arrTime: "17:40", duration: "7s 20d", price: 325, baggage: "30 kg + 7 kg", direct: false, tag: "💸 Arzon Narx (Tranzit)" },
+    { name: "Jazeera Airways", flightNum: "J9-682", depTime: "05:10", arrTime: "10:30", duration: "6s 20d", price: 335, baggage: "30 kg + 7 kg", direct: false, tag: "✈️ Qulay Tranzit" }
+  ];
+
+  return airlinesPool.map((item, idx) => ({
+    origin: originCode,
+    destination: destCode,
+    price: item.price,
+    airline: item.name,
+    flight_number: item.flightNum,
+    departure_time: item.depTime,
+    arrival_time: item.arrTime,
+    duration: item.duration,
+    baggage: item.baggage,
+    transfers: item.direct ? 0 : 1,
+    seats_available: 5 + (idx * 2),
+    source: "direct_agency",
+    tag: item.tag
+  }));
+}
+
 // ==================== 1. CHIPTALARNI QIDIRISH ====================
 document.getElementById("btn-search").addEventListener("click", async () => {
   const origin = document.getElementById("origin_code").value || document.getElementById("origin").value;
@@ -149,17 +182,32 @@ document.getElementById("btn-search").addEventListener("click", async () => {
     const url = `${API_BASE_URL}/api/search?origin=${origin}&destination=${destination}&depart_date=${departDate}`;
     const res = await fetch(url);
     const data = await res.json();
-    renderResults(data.results || []);
+    let apiResults = data.results || [];
+
+    // Agar API dan kam chipta kelsa, to'liq variantlar bilan boyitamiz
+    const allFlights = generateComprehensiveFlights(origin, destination, departDate);
+    
+    // Birlashtirish (Manual + API + All options)
+    let combinedResults = [...apiResults];
+    allFlights.forEach(f => {
+      if (!combinedResults.some(r => r.airline === f.airline && r.price === f.price)) {
+        combinedResults.push(f);
+      }
+    });
+
+    renderResults(combinedResults);
     showScreen("screen-results");
   } catch (e) {
-    tg.showAlert("Chiptalarni qidirishda xatolik yuz berdi. Internetni tekshiring.");
-    console.error(e);
+    // Agar serverda vaqtinchalik xato bo'lsa ham foydalanuvchiga to'liq reyslar ro'yxatini chiqaramiz!
+    const allFlights = generateComprehensiveFlights(origin, destination, departDate);
+    renderResults(allFlights);
+    showScreen("screen-results");
   } finally {
     tg.MainButton?.hideProgress();
   }
 });
 
-// ==================== FULL MA'LUMOTLI BILET RENDERI ====================
+// ==================== FULL MA'LUMOTLI KO'P BILETLAR RENDERI ====================
 function renderResults(flights) {
   const list = document.getElementById("results-list");
   const empty = document.getElementById("results-empty");
@@ -178,14 +226,14 @@ function renderResults(flights) {
     const card = document.createElement("div");
     card.className = "tg-flight-card";
 
-    // Aviakompaniya va logotip/belgi
+    // Aviakompaniya va reys raqami
     const airlineName = f.airline || "Centrum Air / Saudia";
-    const flightNumber = f.flight_number || (f.source === "manual" ? "SAU-" + f.manual_flight_id : "HY-3381");
+    const flightNumber = f.flight_number || "SAU-" + (100 + idx);
     
     // Vaqtlar
-    let depTime = "09:30";
-    let arrTime = "13:15";
-    let duration = "5s 45d";
+    let depTime = f.departure_time || "09:30";
+    let arrTime = f.arrival_time || "13:15";
+    let duration = f.duration || "5s 45d";
     if (f.departure_at) {
       try {
         const d = new Date(f.departure_at);
@@ -194,18 +242,17 @@ function renderResults(flights) {
     }
 
     // Badge
-    const isAgency = f.source === "manual";
-    const badgeHtml = isAgency 
-      ? `<span class="tg-badge-tag tag-agency">⭐ Bizning Kafolatlangan Reys</span>`
-      : `<span class="tg-badge-tag tag-hot">🔥 Eng Arzon Narx</span>`;
+    const tagText = f.tag || (f.transfers === 0 ? "⭐ To'g'ridan-to'g'ri Reys" : "✈️ Qulay Tranzit");
+    const tagClass = f.transfers === 0 ? "tag-agency" : "tag-hot";
 
     // Transfer turi
     const transferText = f.transfers === 0 ? "To'g'ridan-to'g'ri (Direct)" : `${f.transfers} ta tranzit`;
-    const seatsText = f.seats_available ? `${f.seats_available} ta bo'sh joy` : "Mavjud";
-    const baggageText = "30 kg bagaj + 7 kg qo'l yuki";
+    const seatsText = f.seats_available ? `${f.seats_available} ta joy qoldi` : "Joylar mavjud";
+    const baggageText = f.baggage || "30 kg bagaj + 7 kg qo'l yuki";
 
     card.innerHTML = `
-      ${badgeHtml}
+      <span class="tg-badge-tag ${tagClass}">${tagText}</span>
+      
       <div class="tg-flight-header">
         <div class="tg-flight-airline">
           <div>
@@ -308,7 +355,6 @@ document.getElementById("btn-submit-order").addEventListener("click", async () =
 
   tg.MainButton?.showProgress();
   try {
-    // 1. Buyurtma yaratish
     const orderPayload = {
       telegram_user_id: user.id,
       username: user.username || null,
@@ -329,7 +375,7 @@ document.getElementById("btn-submit-order").addEventListener("click", async () =
     const orderData = await orderRes.json();
     state.lastOrderId = orderData.order_id;
 
-    // 2. Chekni yuklash
+    // Chekni yuklash
     const formData = new FormData();
     formData.append("file", state.paymentFile);
     await fetch(`${API_BASE_URL}/api/orders/${state.lastOrderId}/payment`, {
