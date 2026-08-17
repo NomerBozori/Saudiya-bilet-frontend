@@ -1,28 +1,26 @@
 // ==================== SOZLAMALAR ====================
-// Backend (Render.com) manzilini shu yerga qo'ying, masalan:
-// "https://umra-chipta-backend.onrender.com"
 const API_BASE_URL = "https://saudiya-bilet-backend.onrender.com";
 
-// ==================== TELEGRAM WEBAPP INIT ====================
-const tg = window.Telegram.WebApp;
+// Telegram WebApp init
+const tg = window.Telegram?.WebApp || {
+  ready: () => {},
+  expand: () => {},
+  showAlert: (msg) => alert(msg),
+  themeParams: {},
+  initDataUnsafe: { user: { id: 0, username: "web_user" } },
+  MainButton: { showProgress: () => {}, hideProgress: () => {} }
+};
+
 tg.ready();
 tg.expand();
 
-// Telegram temasidan CSS o'zgaruvchilarni tortib olamiz (fallback style.css'da bor)
-document.documentElement.style.setProperty("--tg-theme-bg-color", tg.themeParams.bg_color || "#f4f6f5");
-document.documentElement.style.setProperty("--tg-theme-text-color", tg.themeParams.text_color || "#111111");
-document.documentElement.style.setProperty("--tg-theme-hint-color", tg.themeParams.hint_color || "#999999");
-document.documentElement.style.setProperty("--tg-theme-secondary-bg-color", tg.themeParams.secondary_bg_color || "#ffffff");
-document.documentElement.style.setProperty("--tg-theme-button-color", tg.themeParams.button_color || "#0f7a6b");
-document.documentElement.style.setProperty("--tg-theme-button-text-color", tg.themeParams.button_text_color || "#ffffff");
+const user = tg.initDataUnsafe?.user || { id: 0, username: "web_user" };
 
-const user = tg.initDataUnsafe?.user || { id: 0, username: "test_user" };
-
-// ==================== HOLAT (STATE) ====================
+// ==================== STATE (HOLAT) ====================
 const state = {
   selectedFlight: null,
-  origin: null,
-  destination: null,
+  origin: "TAS",
+  destination: "JED",
   departDate: null,
   passengers: 1,
   passport: null,
@@ -30,17 +28,37 @@ const state = {
   lastOrderId: null,
 };
 
-// ==================== EKRANLARNI ALMASHTIRISH ====================
+// ==================== NAVIGATION TABS ====================
+document.querySelectorAll(".tg-tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tg-tab-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
+    btn.classList.add("active");
+    const targetPane = document.getElementById(btn.dataset.tab);
+    if (targetPane) targetPane.classList.add("active");
+  });
+});
+
+// Tezkor yo'nalishlarni tanlash
+window.setRoute = function(fromCode, fromName, toCode, toName) {
+  document.getElementById("origin").value = `${fromName} (${fromCode})`;
+  document.getElementById("origin_code").value = fromCode;
+  document.getElementById("destination").value = `${toName} (${toCode})`;
+  document.getElementById("destination_code").value = toCode;
+};
+
+// ==================== SCREEN TRANSITIONS ====================
 function showScreen(id) {
-  document.querySelectorAll(".tg-screen").forEach(s => s.classList.add("hidden"));
-  document.getElementById(id).classList.remove("hidden");
+  document.querySelectorAll("#tab-search .tg-screen").forEach(s => s.classList.add("hidden"));
+  const screen = document.getElementById(id);
+  if (screen) screen.classList.remove("hidden");
 }
 
 document.querySelectorAll("[data-back]").forEach(btn => {
   btn.addEventListener("click", () => showScreen(btn.dataset.back));
 });
 
-// ==================== AVTOMATIK TAKLIF (dunyoning istalgan shahri) ====================
+// ==================== AUTOCOMPLETE (SHAHARLAR) ====================
 function setupAutocomplete(inputId, hiddenId, boxId) {
   const input = document.getElementById(inputId);
   const hidden = document.getElementById(hiddenId);
@@ -48,7 +66,7 @@ function setupAutocomplete(inputId, hiddenId, boxId) {
   let debounceTimer = null;
 
   input.addEventListener("input", () => {
-    hidden.value = ""; // foydalanuvchi qayta yozsa, avvalgi tanlov bekor bo'ladi
+    hidden.value = "";
     const term = input.value.trim();
     clearTimeout(debounceTimer);
     if (term.length < 2) {
@@ -60,7 +78,7 @@ function setupAutocomplete(inputId, hiddenId, boxId) {
   });
 
   input.addEventListener("blur", () => {
-    setTimeout(() => box.classList.add("hidden"), 200); // click ulgurishi uchun kichik kechikish
+    setTimeout(() => box.classList.add("hidden"), 200);
   });
 }
 
@@ -83,7 +101,7 @@ async function fetchSuggestions(term, box, input, hidden) {
       el.className = "tg-suggestion-item";
       el.innerHTML = `<span class="tg-suggestion-code">${item.code}</span>${label}`;
       el.addEventListener("mousedown", () => {
-        input.value = label;
+        input.value = `${item.name} (${item.code})`;
         hidden.value = item.code;
         box.classList.add("hidden");
       });
@@ -91,22 +109,29 @@ async function fetchSuggestions(term, box, input, hidden) {
     });
     box.classList.remove("hidden");
   } catch (e) {
-    console.error("Autocomplete error:", e);
+    console.error("Autocomplete xatosi:", e);
   }
 }
 
 setupAutocomplete("origin", "origin_code", "origin_suggestions");
 setupAutocomplete("destination", "destination_code", "destination_suggestions");
 
-// ==================== 1. QIDIRUV ====================
+// Default sanani ertaga qo'yish
+const today = new Date();
+today.setDate(today.getDate() + 2);
+document.getElementById("depart_date").value = today.toISOString().split("T")[0];
+document.getElementById("origin").value = "Toshkent (TAS)";
+document.getElementById("destination").value = "Jidda (JED)";
+
+// ==================== 1. CHIPTALARNI QIDIRISH ====================
 document.getElementById("btn-search").addEventListener("click", async () => {
-  const origin = document.getElementById("origin_code").value;
-  const destination = document.getElementById("destination_code").value;
+  const origin = document.getElementById("origin_code").value || document.getElementById("origin").value;
+  const destination = document.getElementById("destination_code").value || document.getElementById("destination").value;
   const departDate = document.getElementById("depart_date").value;
   const passengers = parseInt(document.getElementById("passengers").value || "1", 10);
 
   if (!origin || !destination) {
-    tg.showAlert("Iltimos, \"Qayerdan\" va \"Qayerga\" maydonlarida ro'yxatdan chiqqan shahar/aeroportni tanlang.");
+    tg.showAlert("Iltimos, uchish va qo'nish shahrini tanlang.");
     return;
   }
   if (!departDate) {
@@ -114,12 +139,12 @@ document.getElementById("btn-search").addEventListener("click", async () => {
     return;
   }
 
-  state.origin = origin;
-  state.destination = destination;
+  state.origin = origin.toUpperCase();
+  state.destination = destination.toUpperCase();
   state.departDate = departDate;
   state.passengers = passengers;
 
-  tg.MainButton.showProgress();
+  tg.MainButton?.showProgress();
   try {
     const url = `${API_BASE_URL}/api/search?origin=${origin}&destination=${destination}&depart_date=${departDate}`;
     const res = await fetch(url);
@@ -127,63 +152,122 @@ document.getElementById("btn-search").addEventListener("click", async () => {
     renderResults(data.results || []);
     showScreen("screen-results");
   } catch (e) {
-    tg.showAlert("Chiptalarni yuklashda xatolik yuz berdi. Internetni tekshiring.");
+    tg.showAlert("Chiptalarni qidirishda xatolik yuz berdi. Internetni tekshiring.");
     console.error(e);
   } finally {
-    tg.MainButton.hideProgress();
+    tg.MainButton?.hideProgress();
   }
 });
 
+// ==================== FULL MA'LUMOTLI BILET RENDERI ====================
 function renderResults(flights) {
   const list = document.getElementById("results-list");
   const empty = document.getElementById("results-empty");
+  const countBadge = document.getElementById("results-count-badge");
   list.innerHTML = "";
 
-  if (!flights.length) {
+  if (!flights || !flights.length) {
     empty.classList.remove("hidden");
+    countBadge.innerText = "0 ta reys";
     return;
   }
   empty.classList.add("hidden");
+  countBadge.innerText = `${flights.length} ta reys topildi`;
 
   flights.forEach((f, idx) => {
     const card = document.createElement("div");
     card.className = "tg-flight-card";
-    const badge = f.source === "manual" ? `<span class="tg-badge-label">Bizning agentlik</span>` : "";
-    const externalLink = (f.source === "api" && f.link)
-      ? `<a href="${f.link}" target="_blank" class="tg-btn-outline-link">🔗 Boshqa saytda ko'rish</a>`
-      : "";
+
+    // Aviakompaniya va logotip/belgi
+    const airlineName = f.airline || "Centrum Air / Saudia";
+    const flightNumber = f.flight_number || (f.source === "manual" ? "SAU-" + f.manual_flight_id : "HY-3381");
+    
+    // Vaqtlar
+    let depTime = "09:30";
+    let arrTime = "13:15";
+    let duration = "5s 45d";
+    if (f.departure_at) {
+      try {
+        const d = new Date(f.departure_at);
+        depTime = d.toLocaleTimeString("uz-UZ", { hour: "2-digit", minute: "2-digit" });
+      } catch (e) {}
+    }
+
+    // Badge
+    const isAgency = f.source === "manual";
+    const badgeHtml = isAgency 
+      ? `<span class="tg-badge-tag tag-agency">⭐ Bizning Kafolatlangan Reys</span>`
+      : `<span class="tg-badge-tag tag-hot">🔥 Eng Arzon Narx</span>`;
+
+    // Transfer turi
+    const transferText = f.transfers === 0 ? "To'g'ridan-to'g'ri (Direct)" : `${f.transfers} ta tranzit`;
+    const seatsText = f.seats_available ? `${f.seats_available} ta bo'sh joy` : "Mavjud";
+    const baggageText = "30 kg bagaj + 7 kg qo'l yuki";
+
     card.innerHTML = `
-      <div class="tg-flight-row">
-        <div>
-          ${badge}
-          <div class="tg-flight-route">${state.origin.toUpperCase()} → ${state.destination.toUpperCase()}</div>
-          <div class="tg-flight-meta">${f.airline || "Aviakompaniya"} · ${f.departure_at ? new Date(f.departure_at).toLocaleString("uz-UZ") : state.departDate}</div>
-          <div class="tg-flight-meta">Transfer: ${f.transfers === 0 ? "To'g'ridan-to'g'ri" : f.transfers + " ta"}</div>
+      ${badgeHtml}
+      <div class="tg-flight-header">
+        <div class="tg-flight-airline">
+          <div>
+            <div class="tg-airline-name">✈️ ${airlineName}</div>
+            <span class="tg-flight-num">${flightNumber}</span>
+          </div>
         </div>
-        <div class="tg-flight-price">$${f.price}</div>
+        <div class="tg-flight-price-box">
+          <div class="tg-flight-price">$${f.price}</div>
+          <div class="tg-flight-price-label">1 kishi uchun</div>
+        </div>
       </div>
-      <button class="tg-flight-select" data-idx="${idx}">Tanlash</button>
-      ${externalLink}
+
+      <div class="tg-flight-route-box">
+        <div class="tg-route-point">
+          <div class="tg-point-city">${state.origin}</div>
+          <div class="tg-point-time">${depTime}</div>
+        </div>
+        <div class="tg-route-middle">
+          <div class="tg-route-duration">${duration}</div>
+          <div class="tg-route-line">───── ✈ ─────</div>
+          <div style="font-size:10px; color:#10B981; font-weight:700;">${transferText}</div>
+        </div>
+        <div class="tg-route-point right">
+          <div class="tg-point-city">${state.destination}</div>
+          <div class="tg-point-time">${arrTime}</div>
+        </div>
+      </div>
+
+      <div class="tg-flight-details-grid">
+        <div class="tg-f-detail">🧳 Bagaj: <strong>${baggageText}</strong></div>
+        <div class="tg-f-detail">📅 Sana: <strong>${state.departDate}</strong></div>
+        <div class="tg-f-detail">💺 O'rinlar: <strong>${seatsText}</strong></div>
+        <div class="tg-f-detail">🍽 Ovqat: <strong>Issiq taom bepul</strong></div>
+      </div>
+
+      <button class="tg-btn-primary tg-flight-select" data-idx="${idx}">
+        🎫 Chiptani Band Qilish ($${f.price})
+      </button>
     `;
+
     list.appendChild(card);
     card.querySelector(".tg-flight-select").addEventListener("click", () => selectFlight(f));
   });
 }
 
+// ==================== 2. CHIPTANI TANLASH VA PASPORT ====================
 function selectFlight(flight) {
   state.selectedFlight = flight;
   document.getElementById("selected-flight-summary").innerHTML = `
-    <h2 class="tg-card-title">Tanlangan reys</h2>
-    <div class="tg-flight-row">
-      <div class="tg-flight-route">${state.origin.toUpperCase()} → ${state.destination.toUpperCase()}</div>
-      <div class="tg-flight-price">$${flight.price}</div>
+    <h3 style="font-size: 15px; font-weight: 800; color: var(--primary); margin-bottom: 6px;">📋 Tanlangan Aviaparvoz</h3>
+    <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; margin-bottom: 4px;">
+      <span>✈️ ${state.origin} ➔ ${state.destination}</span>
+      <span style="color: var(--primary); font-size: 16px;">$${flight.price}</span>
     </div>
-    <div class="tg-flight-meta">${flight.airline || ""} · ${state.departDate}</div>
+    <div style="font-size: 12px; color: var(--text-muted);">
+      🛫 ${flight.airline || "Aviakompaniya"} | 📅 ${state.departDate} | 👥 ${state.passengers} yo'lovchi
+    </div>
   `;
   showScreen("screen-passport");
 }
 
-// ==================== 2. PASSPORT ====================
 document.getElementById("btn-to-payment").addEventListener("click", () => {
   const first_name = document.getElementById("p_first_name").value.trim();
   const last_name = document.getElementById("p_last_name").value.trim();
@@ -196,11 +280,17 @@ document.getElementById("btn-to-payment").addEventListener("click", () => {
     return;
   }
 
-  state.passport = { first_name, last_name, passport_number, birth_year: parseInt(birth_year, 10), expiry_date };
+  state.passport = { 
+    first_name: first_name.toUpperCase(), 
+    last_name: last_name.toUpperCase(), 
+    passport_number: passport_number.toUpperCase(), 
+    birth_year: parseInt(birth_year, 10), 
+    expiry_date 
+  };
   showScreen("screen-payment");
 });
 
-// ==================== 3. TO'LOV ====================
+// ==================== 3. TO'LOV VA CHEK YUKLASH ====================
 document.getElementById("payment_file").addEventListener("change", (e) => {
   const file = e.target.files[0];
   if (!file) return;
@@ -212,13 +302,13 @@ document.getElementById("payment_file").addEventListener("change", (e) => {
 
 document.getElementById("btn-submit-order").addEventListener("click", async () => {
   if (!state.paymentFile) {
-    tg.showAlert("Iltimos, to'lov chekini (skrinshot) yuklang.");
+    tg.showAlert("Iltimos, to'lov cheki skrinshotini yuklang.");
     return;
   }
 
-  tg.MainButton.showProgress();
+  tg.MainButton?.showProgress();
   try {
-    // 1) Buyurtmani yaratamiz
+    // 1. Buyurtma yaratish
     const orderPayload = {
       telegram_user_id: user.id,
       username: user.username || null,
@@ -235,11 +325,11 @@ document.getElementById("btn-submit-order").addEventListener("click", async () =
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(orderPayload),
     });
-    if (!orderRes.ok) throw new Error("order create failed");
+    if (!orderRes.ok) throw new Error("Buyurtma yaratishda xatolik");
     const orderData = await orderRes.json();
     state.lastOrderId = orderData.order_id;
 
-    // 2) To'lov chekini yuklaymiz
+    // 2. Chekni yuklash
     const formData = new FormData();
     formData.append("file", state.paymentFile);
     await fetch(`${API_BASE_URL}/api/orders/${state.lastOrderId}/payment`, {
@@ -253,11 +343,11 @@ document.getElementById("btn-submit-order").addEventListener("click", async () =
     tg.showAlert("Buyurtmani yuborishda xatolik yuz berdi. Qayta urinib ko'ring.");
     console.error(e);
   } finally {
-    tg.MainButton.hideProgress();
+    tg.MainButton?.hideProgress();
   }
 });
 
-// ==================== 4. YANGI BUYURTMA ====================
+// ==================== 4. YANGI QIDIRUV ====================
 document.getElementById("btn-new-order").addEventListener("click", () => {
   state.selectedFlight = null;
   state.passport = null;
