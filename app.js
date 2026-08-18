@@ -1,6 +1,10 @@
 // ==================== SOZLAMALAR ====================
 const API_BASE_URL = "https://saudiya-bilet-backend.onrender.com";
 const ADMIN_TG_USERNAME = "nuriddinovdfg";
+const UZS_RATE = 12850; // 1 USD = 12,850 UZS
+
+let currentCurrency = "USD"; // "USD" yoki "UZS"
+let lastFlightResults = [];
 
 // Telegram WebApp init
 const tg = window.Telegram?.WebApp || {
@@ -17,7 +21,7 @@ tg.expand();
 
 const user = tg.initDataUnsafe?.user || { id: 0, username: "web_user" };
 
-// ==================== STATE (HOLAT) ====================
+// ==================== STATE ====================
 const state = {
   selectedFlight: null,
   origin: "TAS",
@@ -29,18 +33,61 @@ const state = {
   lastOrderId: null,
 };
 
-// ==================== NAVIGATION TABS (3 TA TAB) ====================
+// ==================== VALYUTA ALMASHTIRGICH (USD / UZS) ====================
+document.querySelectorAll(".tg-curr-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tg-curr-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    currentCurrency = btn.dataset.curr;
+    if (lastFlightResults.length) {
+      renderResults(lastFlightResults);
+    }
+  });
+});
+
+function formatPrice(usdPrice) {
+  if (currentCurrency === "UZS") {
+    const uzs = Math.round(usdPrice * UZS_RATE);
+    return `${uzs.toLocaleString("uz-UZ").replace(/,/g, " ")} UZS`;
+  }
+  return `$${usdPrice}`;
+}
+
+// ==================== KALKULYATOR (QO'LDA VA AVTO HISOBLASH) ====================
+window.calculateCustomFare = function() {
+  const price = parseFloat(document.getElementById("calc_price")?.value || "0");
+  const passengers = parseInt(document.getElementById("calc_passengers")?.value || "1", 10);
+  const rate = parseFloat(document.getElementById("calc_rate")?.value || "12850");
+
+  const totalUsd = Math.round(price * passengers);
+  const totalUzs = Math.round(totalUsd * rate);
+
+  const resUsdEl = document.getElementById("calc-res-usd");
+  const resUzsEl = document.getElementById("calc-res-uzs");
+
+  if (resUsdEl) resUsdEl.innerText = `$${totalUsd.toLocaleString()}`;
+  if (resUzsEl) resUzsEl.innerText = `${totalUzs.toLocaleString("uz-UZ").replace(/,/g, " ")} UZS`;
+};
+
+// ==================== NAVIGATION TABS ====================
 document.querySelectorAll(".tg-tab-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     document.querySelectorAll(".tg-tab-btn").forEach(b => b.classList.remove("active"));
     document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
     btn.classList.add("active");
     const targetPane = document.getElementById(btn.dataset.tab);
-    if (targetPane) targetPane.classList.add("active");
+    if (targetPane) {
+      targetPane.classList.add("active");
+      if (btn.dataset.tab === "tab-orders") {
+        loadUserOrders();
+      }
+      if (btn.dataset.tab === "tab-calc") {
+        calculateCustomFare();
+      }
+    }
   });
 });
 
-// Tezkor yo'nalishlarni tanlash
 window.setRoute = function(fromCode, fromName, toCode, toName) {
   document.getElementById("origin").value = `${fromName} (${fromCode})`;
   document.getElementById("origin_code").value = fromCode;
@@ -59,7 +106,7 @@ document.querySelectorAll("[data-back]").forEach(btn => {
   btn.addEventListener("click", () => showScreen(btn.dataset.back));
 });
 
-// ==================== AUTOCOMPLETE (SHAHARLAR) ====================
+// ==================== AUTOCOMPLETE ====================
 function setupAutocomplete(inputId, hiddenId, boxId) {
   const input = document.getElementById(inputId);
   const hidden = document.getElementById(hiddenId);
@@ -117,7 +164,7 @@ async function fetchSuggestions(term, box, input, hidden) {
 setupAutocomplete("origin", "origin_code", "origin_suggestions");
 setupAutocomplete("destination", "destination_code", "destination_suggestions");
 
-// Default sanani ertaga qo'yish
+// Default sana
 const today = new Date();
 today.setDate(today.getDate() + 2);
 document.getElementById("depart_date").value = today.toISOString().split("T")[0];
@@ -184,10 +231,7 @@ document.getElementById("btn-search").addEventListener("click", async () => {
     const data = await res.json();
     let apiResults = data.results || [];
 
-    // Agar API dan kam chipta kelsa, to'liq variantlar bilan boyitamiz
     const allFlights = generateComprehensiveFlights(origin, destination, departDate);
-    
-    // Birlashtirish (Manual + API + All options)
     let combinedResults = [...apiResults];
     allFlights.forEach(f => {
       if (!combinedResults.some(r => r.airline === f.airline && r.price === f.price)) {
@@ -195,11 +239,12 @@ document.getElementById("btn-search").addEventListener("click", async () => {
       }
     });
 
+    lastFlightResults = combinedResults;
     renderResults(combinedResults);
     showScreen("screen-results");
   } catch (e) {
-    // Agar serverda vaqtinchalik xato bo'lsa ham foydalanuvchiga to'liq reyslar ro'yxatini chiqaramiz!
     const allFlights = generateComprehensiveFlights(origin, destination, departDate);
+    lastFlightResults = allFlights;
     renderResults(allFlights);
     showScreen("screen-results");
   } finally {
@@ -207,7 +252,7 @@ document.getElementById("btn-search").addEventListener("click", async () => {
   }
 });
 
-// ==================== FULL MA'LUMOTLI KO'P BILETLAR RENDERI ====================
+// ==================== RENDER RESULTS ====================
 function renderResults(flights) {
   const list = document.getElementById("results-list");
   const empty = document.getElementById("results-empty");
@@ -226,11 +271,9 @@ function renderResults(flights) {
     const card = document.createElement("div");
     card.className = "tg-flight-card";
 
-    // Aviakompaniya va reys raqami
     const airlineName = f.airline || "Centrum Air / Saudia";
     const flightNumber = f.flight_number || "SAU-" + (100 + idx);
     
-    // Vaqtlar
     let depTime = f.departure_time || "09:30";
     let arrTime = f.arrival_time || "13:15";
     let duration = f.duration || "5s 45d";
@@ -241,14 +284,14 @@ function renderResults(flights) {
       } catch (e) {}
     }
 
-    // Badge
     const tagText = f.tag || (f.transfers === 0 ? "⭐ To'g'ridan-to'g'ri Reys" : "✈️ Qulay Tranzit");
     const tagClass = f.transfers === 0 ? "tag-agency" : "tag-hot";
 
-    // Transfer turi
     const transferText = f.transfers === 0 ? "To'g'ridan-to'g'ri (Direct)" : `${f.transfers} ta tranzit`;
     const seatsText = f.seats_available ? `${f.seats_available} ta joy qoldi` : "Joylar mavjud";
     const baggageText = f.baggage || "30 kg bagaj + 7 kg qo'l yuki";
+
+    const formattedPrice = formatPrice(f.price);
 
     card.innerHTML = `
       <span class="tg-badge-tag ${tagClass}">${tagText}</span>
@@ -261,7 +304,7 @@ function renderResults(flights) {
           </div>
         </div>
         <div class="tg-flight-price-box">
-          <div class="tg-flight-price">$${f.price}</div>
+          <div class="tg-flight-price">${formattedPrice}</div>
           <div class="tg-flight-price-label">1 kishi uchun</div>
         </div>
       </div>
@@ -290,7 +333,7 @@ function renderResults(flights) {
       </div>
 
       <button class="tg-btn-primary tg-flight-select" data-idx="${idx}">
-        🎫 Chiptani Band Qilish ($${f.price})
+        🎫 Chiptani Band Qilish (${formattedPrice})
       </button>
     `;
 
@@ -299,14 +342,14 @@ function renderResults(flights) {
   });
 }
 
-// ==================== 2. CHIPTANI TANLASH VA PASPORT ====================
+// ==================== 2. TANLASH VA PASPORT ====================
 function selectFlight(flight) {
   state.selectedFlight = flight;
   document.getElementById("selected-flight-summary").innerHTML = `
     <h3 style="font-size: 15px; font-weight: 800; color: var(--primary); margin-bottom: 6px;">📋 Tanlangan Aviaparvoz</h3>
     <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; margin-bottom: 4px;">
       <span>✈️ ${state.origin} ➔ ${state.destination}</span>
-      <span style="color: var(--primary); font-size: 16px;">$${flight.price}</span>
+      <span style="color: var(--primary); font-size: 16px;">${formatPrice(flight.price)}</span>
     </div>
     <div style="font-size: 12px; color: var(--text-muted);">
       🛫 ${flight.airline || "Aviakompaniya"} | 📅 ${state.departDate} | 👥 ${state.passengers} yo'lovchi
@@ -337,7 +380,7 @@ document.getElementById("btn-to-payment").addEventListener("click", () => {
   showScreen("screen-payment");
 });
 
-// ==================== 3. TO'LOV VA CHEK YUKLASH ====================
+// ==================== 3. TO'LOV VA CHEK ====================
 document.getElementById("payment_file").addEventListener("change", (e) => {
   const file = e.target.files[0];
   if (!file) return;
@@ -393,7 +436,6 @@ document.getElementById("btn-submit-order").addEventListener("click", async () =
   }
 });
 
-// ==================== 4. YANGI QIDIRUV ====================
 document.getElementById("btn-new-order").addEventListener("click", () => {
   state.selectedFlight = null;
   state.passport = null;
@@ -401,3 +443,52 @@ document.getElementById("btn-new-order").addEventListener("click", () => {
   document.getElementById("payment_preview").classList.add("hidden");
   showScreen("screen-search");
 });
+
+// ==================== 4. MENING CHIPTALARIMNI YUKLASH ====================
+async function loadUserOrders() {
+  const list = document.getElementById("user-orders-list");
+  const empty = document.getElementById("user-orders-empty");
+  list.innerHTML = `<div style="text-align:center; padding:20px; font-size:13px; color:var(--text-muted);">Yuklanmoqda...</div>`;
+  empty.classList.add("hidden");
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/my-orders?telegram_user_id=${user.id}`);
+    const data = await res.json();
+    const orders = data.orders || [];
+
+    list.innerHTML = "";
+    if (!orders.length) {
+      empty.classList.remove("hidden");
+      return;
+    }
+
+    const STATUS_MAP = {
+      new: { label: "🆕 Yangi", class: "st-new" },
+      awaiting_confirmation: { label: "⏳ Tasdiqlanmoqda", class: "st-new" },
+      confirmed: { label: "✅ Tasdiqlangan", class: "st-confirmed" },
+      rejected: { label: "❌ Rad etilgan", class: "st-rejected" }
+    };
+
+    orders.forEach(o => {
+      const passport = (o.passports && o.passports[0]) || o.passports || {};
+      const st = STATUS_MAP[o.status] || { label: o.status, class: "st-new" };
+      const card = document.createElement("div");
+      card.className = "tg-user-order-card";
+      card.innerHTML = `
+        <div class="flex-between" style="margin-bottom:6px;">
+          <div style="font-weight:800; font-size:14px;">#${o.id} — ✈️ ${o.origin.toUpperCase()} ➔ ${o.destination.toUpperCase()}</div>
+          <span class="tg-order-status-badge ${st.class}">${st.label}</span>
+        </div>
+        <div style="font-size:12px; color:var(--text-muted);">
+          👤 ${passport.first_name || ""} ${passport.last_name || ""} · 🛂 ${passport.passport_number || "-"}
+        </div>
+        <div style="font-size:12px; color:var(--text-muted); margin-top:3px;">
+          📅 ${o.depart_date} · 👥 ${o.passengers || 1} yo'lovchi · 💵 <strong>$${o.price}</strong>
+        </div>
+      `;
+      list.appendChild(card);
+    });
+  } catch (e) {
+    list.innerHTML = `<div style="text-align:center; padding:20px; font-size:13px; color:var(--danger);">Buyurtmalarni yuklashda xato yuz berdi.</div>`;
+  }
+}
