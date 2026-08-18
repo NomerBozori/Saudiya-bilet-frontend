@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=6">
+<link rel="stylesheet" href="style.css?v=7">
 </head>
 <body class="tg-body">
 
@@ -19,19 +19,27 @@
       <div class="tg-badge">
         <span class="tg-badge-icon">✈️</span>
       </div>
-      <div>
+      <div style="flex: 1;">
         <div class="tg-header-tag">🇸🇦 SAUDIYA BILETLAR BOT</div>
         <h1 class="tg-title">Saudiya Biletlar</h1>
-        <p class="tg-subtitle">Umra va Ziyorat reyslari uchun eng hamyonbop aviachiptalar</p>
+        <p class="tg-subtitle">Umra va Ziyorat reyslari uchun hamyonbop chiptalar</p>
+      </div>
+
+      <!-- Valyuta O'zgartirgich (USD / UZS) -->
+      <div class="tg-currency-toggle" id="currency-toggle" title="Valyutani almashtirish">
+        <button class="tg-curr-btn active" data-curr="USD">$ USD</button>
+        <button class="tg-curr-btn" data-curr="UZS">So'm</button>
       </div>
     </div>
   </header>
 
-  <!-- 3 TA ASOSIY BO'LIM -->
+  <!-- 4 TA ASOSIY BO'LIM -->
   <nav class="tg-nav-tabs">
     <button class="tg-tab-btn active" data-tab="tab-search">✈️ Aviabiletlar</button>
-    <button class="tg-tab-btn" data-tab="tab-visa">📑 Viza Xizmati</button>
-    <button class="tg-tab-btn" data-tab="tab-contacts">📞 Bog'lanish</button>
+    <button class="tg-tab-btn" data-tab="tab-calc">🧮 Kalkulyator</button>
+    <button class="tg-tab-btn" data-tab="tab-orders">🗂 Chiptalarim</button>
+    <button class="tg-tab-btn" data-tab="tab-visa">📑 Viza</button>
+    <button class="tg-tab-btn" data-tab="tab-contacts">📞 Aloqa</button>
   </nav>
 
   <main id="app" class="tg-main">
@@ -92,7 +100,7 @@
         <p class="tg-hint">⚡️ Real vaqtda barcha reyslar va narxlar tekshiriladi.</p>
       </section>
 
-      <!-- SCREEN 2: Natijalar -->
+      <!-- SCREEN 2: Ko'p sonli chiptalar natijasi -->
       <section id="screen-results" class="tg-screen hidden">
         <div class="tg-results-header">
           <button class="tg-back" data-back="screen-search">← Qidiruvga qaytish</button>
@@ -181,7 +189,54 @@
 
     </div>
 
-    <!-- ==================== 2. VIZA XIZMATI (NARXLARSIZ) ==================== -->
+    <!-- ==================== 2. VALYUTA & NARX KALKULYATORI ==================== -->
+    <div id="tab-calc" class="tab-pane">
+      <div class="tg-card">
+        <div class="tg-card-header">
+          <h2 class="tg-card-title">🧮 Narx & Valyuta Hisoblagich</h2>
+          <p class="tg-text-muted">Yo'lovchilar soni va chipta narxini so'mda hisoblang</p>
+        </div>
+
+        <label class="tg-label">1 ta chipta narxi ($ USD)</label>
+        <input id="calc_price" type="number" class="tg-input" value="380" placeholder="380" oninput="calculateCustomFare()">
+
+        <label class="tg-label">Yo'lovchilar soni</label>
+        <input id="calc_passengers" type="number" min="1" max="50" class="tg-input" value="1" oninput="calculateCustomFare()">
+
+        <label class="tg-label">1 USD ning so'm kursi (UZS)</label>
+        <input id="calc_rate" type="number" class="tg-input" value="12850" oninput="calculateCustomFare()">
+
+        <div class="tg-calc-result-box">
+          <div class="tg-calc-row">
+            <span>Jami summa ($ USD):</span>
+            <strong id="calc-res-usd" style="color: var(--accent-gold); font-size: 20px;">$380</strong>
+          </div>
+          <div class="tg-calc-row">
+            <span>Jami summa (So'mda):</span>
+            <strong id="calc-res-uzs" style="color: #fff; font-size: 22px;">4 883 000 UZS</strong>
+          </div>
+        </div>
+
+        <p class="tg-hint">Kurs Markaziy Bankning taxminiy o'rtacha kursi bo'yicha ko'rsatilmoqda.</p>
+      </div>
+    </div>
+
+    <!-- ==================== 3. MENING CHIPTALARIM ==================== -->
+    <div id="tab-orders" class="tab-pane">
+      <div class="tg-card-header flex-between">
+        <h2 class="tg-section-title">🗂 Mening Buyurtmalarim</h2>
+        <button class="tg-btn-secondary" style="width: auto; padding: 6px 12px; font-size: 11px;" onclick="loadUserOrders()">🔄 Yangilash</button>
+      </div>
+      
+      <div id="user-orders-list" class="tg-list"></div>
+      <div id="user-orders-empty" class="tg-empty hidden">
+        <div class="empty-icon">📭</div>
+        <h3>Hozircha buyurtmalaringiz yo'q</h3>
+        <p>Aviachipta xarid qilish uchun «Aviabiletlar» bo'limiga o'ting.</p>
+      </div>
+    </div>
+
+    <!-- ==================== 4. VIZA XIZMATI ==================== -->
     <div id="tab-visa" class="tab-pane">
       <div class="tg-section-header">
         <h2 class="tg-section-title">📑 Saudiya Viza Xizmatlari</h2>
@@ -213,7 +268,7 @@
       </div>
     </div>
 
-    <!-- ==================== 3. BOG'LANISH / ALOQA (TEL NOMERSIZ) ==================== -->
+    <!-- ==================== 5. BOG'LANISH / ALOQA ==================== -->
     <div id="tab-contacts" class="tab-pane">
       <div class="tg-card">
         <h2 class="tg-card-title">📞 Biz Bilan Bog'lanish</h2>
@@ -243,6 +298,6 @@
 
   </main>
 
-  <script src="app.js?v=6"></script>
+  <script src="app.js?v=7"></script>
 </body>
 </html>
