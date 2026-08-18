@@ -3,63 +3,60 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Saudiya Biletlari & Umra Xizmatlari</title>
+<title>Saudiya Biletlar — Aviabilet & Viza</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=4">
+<link rel="stylesheet" href="style.css?v=5">
 </head>
 <body class="tg-body">
 
-  <!-- TOP HEADER -->
+  <!-- HEADER (Saudiya Biletlar brendi) -->
   <header class="tg-header">
     <div class="tg-header-pattern"></div>
     <div class="tg-header-inner">
       <div class="tg-badge">
-        <span class="tg-badge-icon">🕋</span>
+        <span class="tg-badge-icon">✈️</span>
       </div>
       <div>
-        <div class="tg-header-tag">🇸🇦 RASMIY XIZMATLAR PORTALI</div>
-        <h1 class="tg-title">Saudiya Biletlari & Umra</h1>
-        <p class="tg-subtitle">Toshkent, Namangan, Samarqand ➔ Jidda, Madina</p>
+        <div class="tg-header-tag">🇸🇦 SAUDIYA BILETLAR BOT</div>
+        <h1 class="tg-title">Saudiya Biletlar</h1>
+        <p class="tg-subtitle">Umra va Ziyorat reyslari uchun eng hamyonbop aviachiptalar</p>
       </div>
     </div>
   </header>
 
-  <!-- NAVIGATION TABS -->
+  <!-- 3 TA ASOSIY BO'LIM (TABLAR) -->
   <nav class="tg-nav-tabs">
-    <button class="tg-tab-btn active" data-tab="tab-search">✈️ Bilet Qidirish</button>
-    <button class="tg-tab-btn" data-tab="tab-umrah">🕋 Umra Paketlar</button>
-    <button class="tg-tab-btn" data-tab="tab-visa">📑 Vizalar</button>
-    <button class="tg-tab-btn" data-tab="tab-hotels">🏨 Mehmonxona</button>
-    <button class="tg-tab-btn" data-tab="tab-transfers">🚖 Transfer</button>
-    <button class="tg-tab-btn" data-tab="tab-contacts">📞 Aloqa</button>
+    <button class="tg-tab-btn active" data-tab="tab-search">✈️ Aviabiletlar</button>
+    <button class="tg-tab-btn" data-tab="tab-visa">📑 Viza Xizmati</button>
+    <button class="tg-tab-btn" data-tab="tab-contacts">📞 Bog'lanish</button>
   </nav>
 
   <main id="app" class="tg-main">
 
-    <!-- ==================== 1-TAB: BILET QIDIRISH VA REYSLAR ==================== -->
+    <!-- ==================== 1. AVIABILETLAR BO'LIMI ==================== -->
     <div id="tab-search" class="tab-pane active">
       
       <!-- SCREEN 1: Qidiruv Formasi -->
       <section id="screen-search" class="tg-screen">
         <div class="tg-card">
           <div class="tg-card-header">
-            <h2 class="tg-card-title">🔍 Aviachipta Qidirish</h2>
-            <p class="tg-text-muted">Saudiya Arabistoniga eng arzon va qulay reyslar</p>
+            <h2 class="tg-card-title">🔍 Aviachiptalarni Qidirish</h2>
+            <p class="tg-text-muted">Barcha aviakompaniyalarning eng arzon narxlari</p>
           </div>
 
           <label class="tg-label">Qayerdan (Uchish shahri)</label>
           <div class="tg-autocomplete">
-            <input id="origin" type="text" class="tg-input" placeholder="Masalan: Tashkent (TAS)" autocomplete="off">
+            <input id="origin" type="text" class="tg-input" placeholder="Toshkent (TAS)" autocomplete="off">
             <input type="hidden" id="origin_code" value="TAS">
             <div id="origin_suggestions" class="tg-suggestions hidden"></div>
           </div>
 
           <label class="tg-label">Qayerga (Qo'nish shahri)</label>
           <div class="tg-autocomplete">
-            <input id="destination" type="text" class="tg-input" placeholder="Masalan: Jeddah (JED)" autocomplete="off">
+            <input id="destination" type="text" class="tg-input" placeholder="Jidda (JED)" autocomplete="off">
             <input type="hidden" id="destination_code" value="JED">
             <div id="destination_suggestions" class="tg-suggestions hidden"></div>
           </div>
@@ -88,18 +85,18 @@
           </div>
 
           <button id="btn-search" class="tg-btn-primary">
-            <span>✈️ Chiptalarni Qidirish</span>
+            <span>✈️ Barcha Chiptalarni Qidirish</span>
           </button>
         </div>
 
-        <p class="tg-hint">⚡️ Narxlar to'g'ridan-to'g'ri aviakompaniyalar va rasmiy tizimdan olinadi.</p>
+        <p class="tg-hint">⚡️ Real vaqtda barcha reyslar va narxlar tekshiriladi.</p>
       </section>
 
-      <!-- SCREEN 2: Natijalar (Full Ma'lumotli Bilet Kartalari) -->
+      <!-- SCREEN 2: Ko'p sonli chiptalar natijasi -->
       <section id="screen-results" class="tg-screen hidden">
         <div class="tg-results-header">
           <button class="tg-back" data-back="screen-search">← Qidiruvga qaytish</button>
-          <div id="results-count-badge" class="tg-results-count">0 ta reys topildi</div>
+          <div id="results-count-badge" class="tg-results-count">Mavjud reyslar</div>
         </div>
 
         <div id="results-list" class="tg-list"></div>
@@ -107,67 +104,67 @@
         <div id="results-empty" class="tg-empty hidden">
           <div class="empty-icon">✈️</div>
           <h3>Ushbu sanada reyslar topilmadi</h3>
-          <p>Boshqa sanani tanlab ko'ring yoki to'g'ridan-to'g'ri operatorimizga murojaat qiling.</p>
-          <a href="https://t.me/Saudiya_Admin" target="_blank" class="tg-btn-secondary" style="display:inline-block; margin-top:12px; text-decoration:none;">💬 Operatorga Yozish</a>
+          <p>Boshqa sanani tanlang yoki operatorimiz bilan bog'laning:</p>
+          <a href="https://t.me/nuriddinovdfg" target="_blank" class="tg-btn-secondary" style="display:inline-block; margin-top:12px; text-decoration:none;">💬 Adminga Yozish (@nuriddinovdfg)</a>
         </div>
       </section>
 
-      <!-- SCREEN 3: Pasport Ma'lumotlari -->
+      <!-- SCREEN 3: Pasport -->
       <section id="screen-passport" class="tg-screen hidden">
         <button class="tg-back" data-back="screen-results">← Reyslarga qaytish</button>
         <div class="tg-card" id="selected-flight-summary"></div>
 
         <div class="tg-card">
           <h2 class="tg-card-title">🛂 Yo'lovchi Pasport Ma'lumotlari</h2>
-          <p class="tg-text-muted" style="margin-bottom: 14px;">Chiptani rasmiylashtirish uchun xorijga chiqish (zagran) pasportingiz ma'lumotlarini kiriting:</p>
+          <p class="tg-text-muted" style="margin-bottom: 12px;">Xorijga chiqish (zagran) pasportingizni kiriting:</p>
 
           <div class="tg-grid-2">
             <div>
               <label class="tg-label">Ism (Lotincha)</label>
-              <input id="p_first_name" class="tg-input" placeholder="Masalan: ALISHER" style="text-transform: uppercase;">
+              <input id="p_first_name" class="tg-input" placeholder="ALISHER" style="text-transform: uppercase;">
             </div>
             <div>
               <label class="tg-label">Familiya (Lotincha)</label>
-              <input id="p_last_name" class="tg-input" placeholder="Masalan: QODIROV" style="text-transform: uppercase;">
+              <input id="p_last_name" class="tg-input" placeholder="QODIROV" style="text-transform: uppercase;">
             </div>
           </div>
 
           <div class="tg-grid-2">
             <div>
-              <label class="tg-label">Pasport seriya va raqami</label>
+              <label class="tg-label">Pasport seriya/raqam</label>
               <input id="p_number" class="tg-input" placeholder="FA1234567" style="text-transform: uppercase;">
             </div>
             <div>
-              <label class="tg-label">Tug'ilgan yili</label>
+              <label class="tg-label">Tug'ilgan yil</label>
               <input id="p_birth_year" type="number" class="tg-input" placeholder="1990">
             </div>
           </div>
 
-          <label class="tg-label">Pasport amal qilish muddati (Expiry Date)</label>
+          <label class="tg-label">Pasport amal qilish muddati</label>
           <input id="p_expiry" type="date" class="tg-input">
 
           <button id="btn-to-payment" class="tg-btn-primary">Davom etish (To'lovga o'tish) ➔</button>
         </div>
       </section>
 
-      <!-- SCREEN 4: To'lov Ekran -->
+      <!-- SCREEN 4: To'lov -->
       <section id="screen-payment" class="tg-screen hidden">
         <button class="tg-back" data-back="screen-passport">← Pasportga qaytish</button>
         <div class="tg-card">
           <h2 class="tg-card-title">💳 To'lovni Amalga Oshirish</h2>
-          <p class="tg-text">Quyidagi rasmiy karta hisobiga to'lov qiling va chek skrinshotini yuklang:</p>
+          <p class="tg-text">Quyidagi karta hisobiga to'lov qiling va chek skrinshotini yuklang:</p>
           
           <div class="tg-card-box">
             <div class="tg-card-chip">💳 UZCARD / HUMO / VISA</div>
             <div class="tg-card-number" id="card-number">8600 0000 0000 0000</div>
-            <div class="tg-card-owner" id="card-owner">Karta egasi: SAUDIYA BILETLARI</div>
+            <div class="tg-card-owner" id="card-owner">Karta egasi: SAUDIYA BILETLAR</div>
           </div>
 
-          <label class="tg-label">To'lov cheki (Skrinshot yoki kvitansiya)</label>
+          <label class="tg-label">To'lov cheki (Skrinshot)</label>
           <input id="payment_file" type="file" accept="image/*" class="tg-input">
           <img id="payment_preview" class="tg-preview hidden">
 
-          <button id="btn-submit-order" class="tg-btn-primary">✅ Buyurtmani Yuborish</button>
+          <button id="btn-submit-order" class="tg-btn-primary">✅ Buyurtmani Tasdiqlashga Yuborish</button>
         </div>
       </section>
 
@@ -177,259 +174,85 @@
           <div class="tg-success-icon">🎉</div>
           <h2 class="tg-card-title">Buyurtmangiz Qabul Qilindi!</h2>
           <p class="tg-text">Buyurtma raqamingiz: <strong>#<span id="success-order-id"></span></strong></p>
-          <p class="tg-text-muted" style="margin: 12px 0;">To'lov tasdiqlangandan so'ng xalqaro standartdagi elektron PDF chiptangiz ushbu bot orqali yuboriladi.</p>
+          <p class="tg-text-muted" style="margin: 12px 0;">To'lov tasdiqlangandan so'ng xalqaro elektron PDF chiptangiz ushbu bot orqali yuboriladi.</p>
           <button id="btn-new-order" class="tg-btn-secondary">🔄 Yangi Qidiruv</button>
         </div>
       </section>
 
     </div>
 
-    <!-- ==================== 2-TAB: UMRA PAKETLARI ==================== -->
-    <div id="tab-umrah" class="tab-pane">
-      <div class="tg-section-header">
-        <h2 class="tg-section-title">🕋 Umra Ziyorat Paketlari (14 kun)</h2>
-        <p class="tg-section-desc">Barcha to'lovlar va xizmatlar ichida: Viza, Aviabilet, Mehmonxona, Taomlar, Transfer va Gid</p>
-      </div>
-
-      <div class="tg-packages-list">
-        
-        <!-- EKONOM -->
-        <div class="tg-package-card">
-          <div class="tg-pkg-top">
-            <span class="tg-pkg-badge badge-green">Eng Maqbul Narx</span>
-            <h3 class="tg-pkg-name">Umra Ekonom Paket</h3>
-            <div class="tg-pkg-price">$1,050 <span>/ kishi boshiga</span></div>
-          </div>
-          <div class="tg-pkg-hotels">
-            <div>🏨 <strong>Makka:</strong> 3★ Mehmonxona (800m, 24/7 Bepul Avtobus)</div>
-            <div>🏨 <strong>Madina:</strong> 3★ Mehmonxona (350m piyoda)</div>
-          </div>
-          <ul class="tg-pkg-features">
-            <li>To'g'ridan-to'g'ri aviaparvoz (Borish-qaytish)</li>
-            <li>Rasmiy Umra / Multi vizasi va to'liq sug'urta</li>
-            <li>Kuniga 2 mahal issiq milliy taomlar</li>
-            <li>Makka va Madina qadamjolariga ziyoratlar</li>
-            <li>Gid (Ellikboshi) hamrohligi</li>
-            <li>5 litr Zam-Zam suvi va hadyalar to'plami</li>
-          </ul>
-          <a href="https://t.me/Saudiya_Admin?text=Assalomu%20alaykum!%20Men%20Umra%20Ekonom%20paketiga%20yozilmoqchiman%20($1050)" target="_blank" class="tg-btn-primary">📝 Paketga Yozilish ($1,050)</a>
-        </div>
-
-        <!-- STANDART -->
-        <div class="tg-package-card featured">
-          <div class="tg-featured-ribbon">ENG MASHHUR</div>
-          <div class="tg-pkg-top">
-            <span class="tg-pkg-badge badge-gold">⭐ Tavsiya Etiladi</span>
-            <h3 class="tg-pkg-name">Umra Standart Paket</h3>
-            <div class="tg-pkg-price">$1,250 <span>/ kishi boshiga</span></div>
-          </div>
-          <div class="tg-pkg-hotels">
-            <div>🏨 <strong>Makka:</strong> 4★ Mehmonxona (400-500m piyoda)</div>
-            <div>🏨 <strong>Madina:</strong> 4★ Markaziya (200m Haram hovlisi)</div>
-          </div>
-          <ul class="tg-pkg-features">
-            <li>To'g'ridan-to'g'ri qulay aviaparvoz</li>
-            <li>Rasmiy viza va Fast-Track xizmati</li>
-            <li>Kuniga 2-3 mahal shved stoli taomlari</li>
-            <li>VIP avtobuslarda qulay transferlar</li>
-            <li>Toif va Qizil dengiz (Jidda) ziyorati</li>
-            <li>Tajribali ustozlar, shifokor va to'liq hadyalar</li>
-          </ul>
-          <a href="https://t.me/Saudiya_Admin?text=Assalomu%20alaykum!%20Men%20Umra%20Standart%20paketiga%20yozilmoqchiman%20($1250)" target="_blank" class="tg-btn-primary">📝 Paketga Yozilish ($1,250)</a>
-        </div>
-
-        <!-- VIP -->
-        <div class="tg-package-card">
-          <div class="tg-pkg-top">
-            <span class="tg-pkg-badge badge-vip">👑 5★ Hashamatli</span>
-            <h3 class="tg-pkg-name">Umra VIP / Lyuks Paket</h3>
-            <div class="tg-pkg-price">$1,850 <span>/ kishi boshiga</span></div>
-          </div>
-          <div class="tg-pkg-hotels">
-            <div>🏨 <strong>Makka:</strong> 5★ Clock Tower (Abraj Al Bait / Swissotel)</div>
-            <div>🏨 <strong>Madina:</strong> 5★ Dar Al Taqwa / Oberoi (1-qator)</div>
-          </div>
-          <ul class="tg-pkg-features">
-            <li>Saudia Airlines to'g'ridan-to'g'ri VIP reys</li>
-            <li>Haram ro'parasidagi 5★ hashamatli xonalar</li>
-            <li>3 mahal hashamatli shved stoli</li>
-            <li>Shaxsiy GMC Yukon transfer va individual gid</li>
-            <li>24/7 shaxsiy xizmatchi</li>
-          </ul>
-          <a href="https://t.me/Saudiya_Admin?text=Assalomu%20alaykum!%20Men%20Umra%20VIP%20paketiga%20yozilmoqchiman%20($1850)" target="_blank" class="tg-btn-primary">📝 VIP Paketga Yozilish ($1,850)</a>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- ==================== 3-TAB: VIZALAR ==================== -->
+    <!-- ==================== 2. VIZA XIZMATI BO'LIMI ==================== -->
     <div id="tab-visa" class="tab-pane">
       <div class="tg-section-header">
         <h2 class="tg-section-title">📑 Saudiya Viza Xizmatlari</h2>
-        <p class="tg-section-desc">Tez, rasmiy va kafolatlangan viza rasmiylashtirish</p>
+        <p class="tg-section-desc">Tezkor, rasmiy va ishonchli viza rasmiylashtirish</p>
       </div>
 
       <div class="tg-service-card">
         <div class="tg-srv-info">
           <h3>📌 1 Yillik Multi Turistik Viza</h3>
-          <p>⏳ Amal qilish muddati: <strong>1 yil (har safar 90 kungacha qolish mumkin)</strong></p>
+          <p>⏳ Amal qilish muddati: <strong>1 yil (har safar 90 kungacha)</strong></p>
           <p>⏱ Tayyor bo'lish vaqti: <strong>24 – 48 soat ichida</strong></p>
-          <p>📄 Kerakli hujjat: Zagran pasport nusxasi va 3.5x4.5 rasm</p>
+          <p>📄 Kerakli hujjat: Zagran pasport nusxasi va rasm</p>
         </div>
         <div class="tg-srv-action">
           <div class="tg-srv-price">$130</div>
-          <a href="https://t.me/Saudiya_Admin?text=Assalomu%20alaykum!%201%20yillik%20Multi-viza%20rasmiylashtirmoqchiman%20($130)" target="_blank" class="tg-btn-primary">✍️ Rasmiylashtirish</a>
+          <a href="https://t.me/nuriddinovdfg?text=Assalomu%20alaykum!%201%20yillik%20Multi-viza%20rasmiylashtirmoqchiman%20($130)" target="_blank" class="tg-btn-primary">✍️ Rasmiylashtirish</a>
         </div>
       </div>
 
       <div class="tg-service-card">
         <div class="tg-srv-info">
-          <h3>📌 Rasmiy Umra Vizasi (Nusuk tizimi)</h3>
+          <h3>📌 Rasmiy Umra Vizasi (Nusuk)</h3>
           <p>⏳ Amal qilish muddati: <strong>90 kunlik rasmiy ziyorat</strong></p>
           <p>⏱ Tayyor bo'lish vaqti: <strong>1 – 3 ish kuni</strong></p>
-          <p>📄 Kerakli hujjat: Pasport, tibbiy sug'urta va rasm</p>
+          <p>📄 Kerakli hujjat: Pasport, sug'urta va rasm</p>
         </div>
         <div class="tg-srv-action">
           <div class="tg-srv-price">$160</div>
-          <a href="https://t.me/Saudiya_Admin?text=Assalomu%20alaykum!%20Rasmiy%20Umra%20vizasi%20kerak%20edi%20($160)" target="_blank" class="tg-btn-primary">✍️ Rasmiylashtirish</a>
+          <a href="https://t.me/nuriddinovdfg?text=Assalomu%20alaykum!%20Rasmiy%20Umra%20vizasi%20kerak%20edi%20($160)" target="_blank" class="tg-btn-primary">✍️ Rasmiylashtirish</a>
         </div>
       </div>
     </div>
 
-    <!-- ==================== 4-TAB: MEHMONXONALAR ==================== -->
-    <div id="tab-hotels" class="tab-pane">
-      <div class="tg-section-header">
-        <h2 class="tg-section-title">🏨 Makka va Madina Mehmonxonalari</h2>
-        <p class="tg-section-desc">Haramga yaqin, qulay va toza mehmonxonalarni bron qiling</p>
-      </div>
-
-      <div class="tg-hotel-card">
-        <div>
-          <h4>📍 Makka: Swissôtel Al Maqam 5★ ⭐⭐⭐⭐⭐</h4>
-          <p>🕌 Masofa: <strong>0 metr (Clock Tower majmuasida)</strong></p>
-          <p style="font-size:12px; color:#10B981; font-weight:700;">⭐ Mijozlar bahosi: 4.8 / 5.0</p>
-        </div>
-        <div class="tg-srv-action">
-          <div class="tg-srv-price">$180 <span style="font-size:11px; font-weight:500;">/ kecha</span></div>
-          <a href="https://t.me/Saudiya_Admin?text=Assalomu%20alaykum!%20Makka%20Swissotel%20mehmonxonasini%20band%20qilmoqchiman" target="_blank" class="tg-btn-primary">Band Qilish</a>
-        </div>
-      </div>
-
-      <div class="tg-hotel-card">
-        <div>
-          <h4>📍 Makka: Anjum Hotel 5★ ⭐⭐⭐⭐⭐</h4>
-          <p>🕌 Masofa: <strong>200 metr (Piyoda 3 daqiqa)</strong></p>
-          <p style="font-size:12px; color:#10B981; font-weight:700;">⭐ Mijozlar bahosi: 4.6 / 5.0</p>
-        </div>
-        <div class="tg-srv-action">
-          <div class="tg-srv-price">$120 <span style="font-size:11px; font-weight:500;">/ kecha</span></div>
-          <a href="https://t.me/Saudiya_Admin?text=Assalomu%20alaykum!%20Makka%20Anjum%20mehmonxonasini%20band%20qilmoqchiman" target="_blank" class="tg-btn-primary">Band Qilish</a>
-        </div>
-      </div>
-
-      <div class="tg-hotel-card">
-        <div>
-          <h4>📍 Madina: Dar Al Taqwa Hotel 5★ ⭐⭐⭐⭐⭐</h4>
-          <p>🕌 Masofa: <strong>0 metr (Payg'ambarimiz masjidi ro'parasida)</strong></p>
-          <p style="font-size:12px; color:#10B981; font-weight:700;">⭐ Mijozlar bahosi: 4.9 / 5.0</p>
-        </div>
-        <div class="tg-srv-action">
-          <div class="tg-srv-price">$190 <span style="font-size:11px; font-weight:500;">/ kecha</span></div>
-          <a href="https://t.me/Saudiya_Admin?text=Assalomu%20alaykum!%20Madina%20Dar%20Al%20Taqwa%20mehmonxonasini%20band%20qilmoqchiman" target="_blank" class="tg-btn-primary">Band Qilish</a>
-        </div>
-      </div>
-    </div>
-
-    <!-- ==================== 5-TAB: TRANSFER ==================== -->
-    <div id="tab-transfers" class="tab-pane">
-      <div class="tg-section-header">
-        <h2 class="tg-section-title">🚖 Aeroport va Shaharlararo Transfer</h2>
-        <p class="tg-section-desc">Yangi va qulay konditsionerli avtomobillarda kutib olish va eltib qo'yish</p>
-      </div>
-
-      <div class="tg-service-card">
-        <div class="tg-srv-info">
-          <h3>🛣 Jidda Aeroport ➔ Makka Mehmonxona</h3>
-          <p>🚘 <strong>Toyota Camry / Hyundai Sonata</strong> (3-4 kishi)</p>
-          <p>⏱ 24/7 Aeroportda kutib olish va manzilgacha yetkazish</p>
-        </div>
-        <div class="tg-srv-action">
-          <div class="tg-srv-price">$45</div>
-          <a href="https://t.me/Saudiya_Admin?text=Assalomu%20alaykum!%20Jidda-Makka%20Camry%20transferi%20kerak%20($45)" target="_blank" class="tg-btn-primary">Buyurtma</a>
-        </div>
-      </div>
-
-      <div class="tg-service-card">
-        <div class="tg-srv-info">
-          <h3>🛣 Jidda Aeroport ➔ Makka (VIP)</h3>
-          <p>🚘 <strong>GMC Yukon / Chevrolet Tahoe</strong> (6-7 kishi)</p>
-          <p>👑 VIP qulaylik, keng yukxona va shaxsiy haydovchi</p>
-        </div>
-        <div class="tg-srv-action">
-          <div class="tg-srv-price">$85</div>
-          <a href="https://t.me/Saudiya_Admin?text=Assalomu%20alaykum!%20Jidda-Makka%20GMC%20transferi%20kerak%20($85)" target="_blank" class="tg-btn-primary">Buyurtma</a>
-        </div>
-      </div>
-
-      <div class="tg-service-card">
-        <div class="tg-srv-info">
-          <h3>🛣 Makka ➔ Madina Transfer</h3>
-          <p>🚘 <strong>GMC VIP transfer yoki Miniven</strong></p>
-          <p>⏱ To'g'ridan-to'g'ri mehmonxonadan mehmonxonagacha</p>
-        </div>
-        <div class="tg-srv-action">
-          <div class="tg-srv-price">$160</div>
-          <a href="https://t.me/Saudiya_Admin?text=Assalomu%20alaykum!%20Makka-Madina%20transferi%20kerak%20($160)" target="_blank" class="tg-btn-primary">Buyurtma</a>
-        </div>
-      </div>
-    </div>
-
-    <!-- ==================== 6-TAB: ALOQA ==================== -->
+    <!-- ==================== 3. BOG'LANISH / ALOQA BO'LIMI ==================== -->
     <div id="tab-contacts" class="tab-pane">
       <div class="tg-card">
         <h2 class="tg-card-title">📞 Biz Bilan Bog'lanish</h2>
-        <p class="tg-text-muted" style="margin-bottom: 16px;">Savollaringiz bormi yoki maxsus reys buyurtma qilmoqchimisiz? Biz 24/7 xizmatingizdamiz!</p>
+        <p class="tg-text-muted" style="margin-bottom: 16px;">Savollaringiz bormi yoki bilet band qilmoqchimisiz? Operatorimiz 24/7 aloqada!</p>
 
         <div class="tg-contact-item">
           <div class="tg-contact-icon">👤</div>
           <div>
             <span class="tg-contact-label">BOSH OPERATOR / ADMIN</span>
-            <strong>@Saudiya_Admin</strong>
+            <strong>@nuriddinovdfg</strong>
+          </div>
+        </div>
+
+        <div class="tg-contact-item">
+          <div class="tg-contact-icon">🤖</div>
+          <div>
+            <span class="tg-contact-label">RASMIY TELEGRAM BOT</span>
+            <strong>@Saudiya_Biletlarbot</strong>
           </div>
         </div>
 
         <div class="tg-contact-item">
           <div class="tg-contact-icon">📱</div>
           <div>
-            <span class="tg-contact-label">O'ZBEKISTON TELEFON</span>
+            <span class="tg-contact-label">TELEFON RAQAM</span>
             <strong>+998 90 123 45 67</strong>
           </div>
         </div>
 
-        <div class="tg-contact-item">
-          <div class="tg-contact-icon">🇸🇦</div>
-          <div>
-            <span class="tg-contact-label">SAUDIYA ARABISTONI TEL / WHATSAPP</span>
-            <strong>+966 50 123 4567</strong>
-          </div>
-        </div>
-
-        <div class="tg-contact-item">
-          <div class="tg-contact-icon">📢</div>
-          <div>
-            <span class="tg-contact-label">RASMIY TELEGRAM KANAL</span>
-            <strong>@Saudiya_Biletla</strong>
-          </div>
-        </div>
-
-        <a href="https://t.me/Saudiya_Admin" target="_blank" class="tg-btn-primary" style="display:block; text-align:center; text-decoration:none; margin-top:20px;">
-          💬 To'g'ridan-to'g'ri Adminga Yozish
+        <a href="https://t.me/nuriddinovdfg" target="_blank" class="tg-btn-primary" style="display:block; text-align:center; text-decoration:none; margin-top:20px;">
+          💬 To'g'ridan-to'g'ri Adminga Yozish (@nuriddinovdfg)
         </a>
       </div>
     </div>
 
   </main>
 
-  <script src="app.js?v=4"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>
